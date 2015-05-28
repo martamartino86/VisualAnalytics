@@ -1,0 +1,36 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<!-- Add fancyBox 
+	<link rel="stylesheet" href="/fancybox/source/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+	<script type="text/javascript" src="/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>	 -->
+	<script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+	<script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+	<script type="text/javascript" src="./datamaps.world.min.js"></script>
+	<script type="text/javascript" src="projectscript.js"></script>
+</head>
+<title>Gender Inequality Index</title>
+<body>
+	<h1><center>Gender Inequality Index</center></h1>
+	<hr>
+	<div id="bigcontainer" style="position: absolute; width: 100vw; height: 100vh;">
+		<div id="container" style="position: relative; width: 900px; height: 700px; float: left;"></div>
+		<div id="legenda" style="width: 200px; height: 700px; float: left; margin-left: 40px;">
+			The Gender Inequality Index (GII) reflects gender-based
+			disadvantages in three dimensions—reproductive health,
+			empowerment and the labour market—for as many countries
+			as data of reasonable quality allow. The index shows the loss
+			in potential human development due to inequality between
+			female and male achievements in these dimensions. It varies
+			between 0, where women and men fare equally, and 1, where
+			either gender fares as poorly as possible in all measured
+			dimensions.<br>
+			<button id="health_btn">Show health<br>
+			<button id="empow_btn">Show empowerment<br>
+			<button id="lfpr_btn">Show labour force participation<br>
+		</div>
+	</div>
+</body>
+</html>
+

@@ -1,0 +1,9 @@
+h1 {
+	font: Georgia;
+	font-style: italic;
+}
+
+#container {
+	margin: 0 auto;
+	padding: 15px;
+}
