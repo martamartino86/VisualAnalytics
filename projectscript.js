@@ -47,6 +47,16 @@ function show_gii() {
 				//         .projection(projection);
 				// });
 			});
+			// zoom and pan
+			var zoom = d3.behavior.zoom()
+					.on("zoom",function() {
+						console.log('cacccaacacacaaa')
+			        g.attr("transform","translate("+ 
+			        	d3.event.translate.join(",")+")scale("+d3.event.scale+")");
+			        g.selectAll("path")  
+			            .attr("d", path.projection(projection)); 
+					});
+			map.svg.call(zoom);
 
 		}
 		else
@@ -101,18 +111,8 @@ $("document").ready(function(){
 			}
 			map.updateChoropleth(d1);
 		})
-		// zoom and pan
-		var zoom = d3.behavior.zoom()
-   			.on("zoom",function() {
-		        g.attr("transform","translate("+ 
-		        	d3.event.translate.join(",")+")scale("+d3.event.scale+")");
-		        g.selectAll("path")  
-		            .attr("d", path.projection(projection)); 
-		svg.call(zoom);
-  });
+    });
 
-svg.call(zoom)
-	});
 	$("input:radio[value='empowerment']").change(function(){
 		// implementare enter() dataset con dati empowerment
 	});
