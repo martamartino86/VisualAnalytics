@@ -15,20 +15,21 @@
 	<h1><center>Gender Inequality Index</center></h1>
 	<hr>
 	<div id="bigcontainer" style="position: absolute; width: 100vw; height: 100vh;">
-		<div id="container" style="position: relative; width: 900px; height: 700px; float: left;"></div>
-		<div id="legenda" style="width: 200px; height: 700px; float: left; margin-left: 40px;">
+		<div id="container"></div> <!-- contenitore della mappa -->
+		<div id="legenda">
 			The Gender Inequality Index (GII) reflects gender-based
-			disadvantages in three dimensions—reproductive health,
-			empowerment and the labour market—for as many countries
-			as data of reasonable quality allow. The index shows the loss
+			disadvantages in three dimensions—<b>reproductive health</b>,
+			<b>empowerment</b> and the <b>labour market</b>—for as many countries
+			as data of reasonable quality allow.<br>The index (related to 2013 data) shows the loss
 			in potential human development due to inequality between
 			female and male achievements in these dimensions. It varies
 			between 0, where women and men fare equally, and 1, where
 			either gender fares as poorly as possible in all measured
-			dimensions.<br>
-			<button id="health_btn">Show health<br>
-			<button id="empow_btn">Show empowerment<br>
-			<button id="lfpr_btn">Show labour force participation<br>
+			dimensions.<br>It is also possible to analyze time trend for each factor just clicking on a country.<br><br>
+			<input type="radio" name="radio" value="gii" checked>GII<br>
+			<input type="radio" name="radio" value="health">Health<br>
+			<input type="radio" name="radio" value="empowerment">Empowerment<br>
+			<input type="radio" name="radio" value="labourforce">Labour force<br>
 		</div>
 	</div>
 </body>
