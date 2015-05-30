@@ -1,95 +1,93 @@
 var map = null;
 var colormap;
 var d1 = {}, d2 = {};
+var factor;
 var dsv = d3.dsv(";", "text/plain");
+var miageografia;	// TEST
+var miadata;		// TEST
+
+function get_GII_data(data) {
+	colormap = d3.scale.linear()
+						.domain([0, 1000])
+						.range(["#FFE8F6", "#AD3D7E"]);
+	for (d in data) {
+        a = data[d].iso3;										// ISO3
+        b = parseFloat(data[d].GII2013.replace(',','.'));
+        //console.log(colormap(Math.round(1000*b)));
+        if (b == -1.0)
+        	d1[a] = "#A1A1A1"
+        else
+        	d1[a] = colormap(Math.round(1000*b));				// dizionario 1: ISO3 -> colore
+        //d2[a] = {fillKey: a}									// dizionario 2: ISO3 -> fillkey: ISO3
+        d2[a] = {fillkey: a, GII2013: b};
+	}
+	d1.defaultFill = '#A1A1A1';
+	return [d1, d2];
+}
+
+function initiate_map() {
+	console.log("initiate_map");									// get GII data and build map object
+	dsv("gii_index.csv", function(data){
+		var dict = get_GII_data(data);
+		map = new Datamap({											// CREAZIONE MAPPA
+			element: document.getElementById('container'),
+			geographyConfig: {
+				highlightBorderColor: '#bada55',
+				popupTemplate: function(geography, data) {
+					for (d in data) {
+						if (data.fillkey == geography.id) {
+							return '<div class="hoverinfo" style="font-weight:bold; text-align: center">' + geography.properties.name + ' <br> GII2013: ' + data.GII2013 + ' '
+						}
+					}
+					return '<div class="hoverinfo" style="font-style:italic">' + geography.properties.name + '\'s data not available'
+				},
+				highlightBorderWidth: 3,
+				highlightFillColor: '#E3E3E3',
+				borderColor: '#CCCCCC'
+			},
+			dataType: 'csv',
+			fills: dict[0], //d1,
+			data: dict[1],  //d2,
+			projection: "mercator",
+			done: function (datamap){
+				datamap.svg.selectAll('.datamaps-subunit')
+					.on('click',function(geography){									// evento CLICK MAPPA: nuova finestra con dati temporali del factor
+						console.log(geography);
+
+				});
+				datamap.svg.call(d3.behavior.zoom().on("zoom", redraw));				// ZOOM rotella v double click
+	            function redraw() {
+	            	datamap.svg.selectAll("g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	            	console.log("[ZOOM] translate: "+d3.event.translate+"; scale: "+d3.event.scale);
+	            }
+			}
+		});
+	});
+	
+}
 
 function show_gii() {
 	console.log("show gii");
 	dsv("gii_index.csv", function(data){
-		colormap = d3.scale.linear()
-						.domain([0, 1000])
-						.range(["#FFE8F6", "#AD3D7E"]);
-		for (d in data) {
-            a = data[d].iso3;									// ISO3
-            b = parseFloat(data[d].GII2013.replace(',','.'));
-            //console.log(colormap(Math.round(1000*b)));
-            if (b == -1.0)
-            	d1[a] = "#A1A1A1"
-            else
-            	d1[a] = colormap(Math.round(1000*b));				// dizionario 1: ISO3 -> colore
-            d2[a] = {fillKey: a}									// dizionario 2: ISO3 -> fillkey: ISO3
-		}
-		d1.defaultFill = '#A1A1A1';
-		console.log(d1)
-		console.log(d2)
-		if (map == null) {
-			console.log("mumble");
-			map = new Datamap({
-			element: document.getElementById('container'),
-			dataType: 'csv',
-			fills: d1,
-			data: d2,
-			projection: "mercator",
-			geographyConfig: {
-				borderColor: '#CCCCCC'
-			}
-			});
-			// SETTA EVENTI MAPPA
-			map.svg.selectAll('.datamaps-subunit').on('click',function(geography){
-				console.log(geography);
-				// map.options.setProjection(function(element){
-				// 	var projection = d3.geo.equirectangular()
-				//     	.center([23, -3])
-				//         .rotate([4.4, 0])
-				//         .scale(400)
-				//         .translate([element.offsetWidth / 2, element.offsetHeight / 2]);
-				//     var path = d3.geo.path()
-				//         .projection(projection);
-				// });
-			});
-			// zoom and pan
-			var zoom = d3.behavior.zoom()
-					.on("zoom",function() {
-						console.log('cacccaacacacaaa')
-			        g.attr("transform","translate("+ 
-			        	d3.event.translate.join(",")+")scale("+d3.event.scale+")");
-			        g.selectAll("path")  
-			            .attr("d", path.projection(projection)); 
-					});
-			map.svg.call(zoom);
-
-		}
-		else
-		{
-			map.updateChoropleth(d1);
-			console.log("modificato");
-		}
+		var c = get_GII_data(data);
+		map.updateChoropleth(c[0]); //d1
+		console.log("modificato");
 	});
 }
+
 $("document").ready(function(){
-	// CREAZIONE CANVAS SVG
-	/*
-	var svg = d3.select("body").append("svg")
-		.attr("width", 800)
-		.attr("height", 600)
-		.attr("viewBox", "0 0 800 600");
-	// RETTANGOLO DI VISUALIZZAZIONE
-	var mainRect = svg.append("rect")
-	   .attr("x",0)
-	   .attr("y",0)
-	   .attr("width",800)
-	   .attr("height",600)
-	   .attr("fill", "none")
-	   .attr("stroke", "black")
-	   .attr("stroke-width", 1);
-	*/
 	var width = document.getElementById('container').offsetWidth;
 	var height = document.getElementById('container').offsetHeight;
 	// MAPPA INIZIALE: GII
+	initiate_map();
 	show_gii();
-	$("input:radio[value='gii']").change(show_gii);
+	$("input:radio[value='gii']").change(function() {
+		factor = "gii";
+		show_gii();
+	});
 	$("input:radio[value='health']").change(function(){
 		// implementare enter() dataset con dati health
+		factor = "health";
 		dsv("health_index.csv", function(data){
 			var max_dataset = d3.max(data, function(d){return parseFloat(d.HLT2013);});
 			var min_dataset = d3.min(data, function(d){
@@ -115,26 +113,10 @@ $("document").ready(function(){
 
 	$("input:radio[value='empowerment']").change(function(){
 		// implementare enter() dataset con dati empowerment
+		factor = "empowerment";
 	});
 	$("input:radio[value='labourforce']").change(function(){
 		// implementare enter() dataset con dati labour force participation rate
+		factor = "labourforce";
 	});
-		/*
-			.append("rect")
-			.attr("x", 10)
-			.attr("y", function(d,i) {return 35*i;})
-			.attr("width", 25)
-			.attr("height", 25)
-			.attr("fill", "white")
-			.attr("stroke", "black")
-			.append("text")
-			.text(function (d) {return d.iso3;});
-	for(var prop in gii_index) {
-    if(gii_index.hasOwnProperty(prop)) {
-    	console.log(gii_index[prop]);
-        if(gii_index[pro-p] === "iso3") {
-        	alert (gii_index[prop]);
-        }
-    }
-    */
 });
