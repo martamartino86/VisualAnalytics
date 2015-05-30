@@ -1,3 +1,7 @@
+body {
+	font-family: Verdana;
+	font-size: 11px;
+}
 h1 {
 	font: Georgia;
 	font-style: italic;
@@ -13,13 +17,48 @@ h1 {
 	float: left;
 }
 
-#legenda {
+#rightcontainer {
+	float: left;
 	width: 200px;
-	height: 700px;
+	height: 500px;
+}
+
+#recap {
+	width: 200px;
+	height: 220px;
 	float: left;
 	margin-left: 40px;
-	margin-top: 40px;
 	border: 1px dotted #000000;
 	padding: 10px;
 	text-align: justify;
+}
+
+#legenda {
+	width: 200px;
+	height: 35px;
+	float: left;
+	margin-left: 40px;
+	border: 1px dotted #000000;
+	padding: 10px;
+	text-align: justify;
+}
+
+#indici {
+	width: 200px;
+	height: 170px;
+	float: left;
+	margin-left: 40px;
+	border: 1px dotted #000000;
+	padding: 10px;
+	text-align: justify;
+}
+
+.hoverinfo {
+	font-weight:bold;
+	text-align: center;
+}
+
+.hoverinfo_no {
+	font-size: 13px;
+	font-style:italic;
 }
