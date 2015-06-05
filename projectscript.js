@@ -111,8 +111,8 @@ function initiate_map() {
 				geographyConfig: {
 					highlightBorderColor: '#bada55',
 					popupTemplate: function(geography, data) { // data rappresenta il mio {fillKey: <>, GII2013: <>, HLT2013: <>, ...} del Paese su cui sono!
-						miadata = data;
-						miageografia = geography;
+						//miadata = data;
+						//miageografia = geography;
 						// data.fillkey corrisponde al mio d2.fillkey.
 						// data (che dovrebbe dirmi dove sono col mouse) non ha alcun valore se non gli ho assegnato precedentemente un valore io.
 						// Quindi devo prima controllare che coincida con geography.id (altrimenti non accedo!)
@@ -150,11 +150,50 @@ function initiate_map() {
 				fills: dict[0], //d1,
 				data: dict[1],  //d2,
 				projection: "mercator",
+				//setprojection: myprojection;
 				done: function (datamap){
 					datamap.svg.selectAll('.datamaps-subunit')
 						.on('click',function(geography){	// evento CLICK MAPPA: nuova finestra con dati temporali del factor
-							console.log(geography);
+							console.log(geography.id);
+							miageografia = geography;
+							$('#dialog').dialog({
+						    	show: {
+						        	effect: "fade",
+						        	duration: 500
+						      	},
+						      	hide: {
+						        	effect: "fade",
+						        	duration: 500
+						      	}
+						    });
+						    $('#dialog').ready(function() {
+						    	switch (factor) {
+						    		case 'gii':
+						    			dsv("gii_index.csv", function(data) {
+						    				miadata = data;
+						    				pos = searchCountry(geography,data);
+						    				if (pos == -1) {
+						    					$("#dialog").append(geography.properties.name+"\'s data are not available.")
+						    					return;
+						    				}		    					
+						    				var d = data[pos]; // riga di dati da visualizzare
+						    				var svg = $("#dialog").append('svg')
+						    					.attr('width', "100%")
+						    					.attr('height', "100%");
+						    				var plot = d3.layout.lines;
+						    			});
+						    			break;
+						    		case 'health':
 
+						    			break;
+						    		case 'empowerment':
+
+						    			break;
+						    		case 'labourforce':
+
+						    			break;
+						    	}
+						    });
 					});
 					datamap.svg.call(d3.behavior.zoom().on("zoom", redraw));	// ZOOM rotella v double click
 		            function redraw() {
@@ -171,7 +210,7 @@ function initiate_map() {
 }
 
 // CORPO DEL TUTTO
-
+var fancy;
 $("document").ready(function(){
 	var width = document.getElementById('container').offsetWidth;
 	var height = document.getElementById('container').offsetHeight;
@@ -227,3 +266,24 @@ function set_legend(p) {
 	ctx.fillStyle = grd;
 	ctx.fillRect(0, 0, 220, 220);
 }
+
+function searchCountry(geomappa, data) {
+	for (d in data) {
+		if (geomappa.id == data[d].iso3)
+			return d;
+	}
+	return -1;
+}
+
+// function myprojection(){
+// 	function(element) {
+//     var projection = d3.geo.equirectangular()
+//     	.center([23, -3])
+//     	.rotate([4.4, 0])
+//     	.scale(400)
+//     	.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
+//     var path = d3.geo.path()
+//     	.projection(projection);
+    
+//     return {path: path, projection: projection};
+// }

@@ -8,9 +8,10 @@ h1 {
 }
 
 #container {
+	overflow: hidden;
 	border: 1px solid #000000;
 	margin: 0 auto;
-	padding: 15px;
+	padding: 0px;
 	position: relative;
 	width: 1000px;
 	height: 700px;
@@ -25,7 +26,6 @@ h1 {
 
 #recap {
 	width: 200px;
-	height: 220px;
 	float: left;
 	margin-left: 40px;
 	border: 1px dotted #000000;
@@ -61,4 +61,11 @@ h1 {
 .hoverinfo_no {
 	font-size: 13px;
 	font-style:italic;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
 }
