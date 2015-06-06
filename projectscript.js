@@ -176,7 +176,7 @@ function initiate_map() {
 						    					$("#dialog").append(geography.properties.name+"\'s data are not available.")
 						    					return;
 						    				}		    					
-						    				var d = data[pos]; // riga di dati da visualizzare
+						    				var d = data[pos]; // Paese da evidenziare: geography.id
 						    				var svg = $("#dialog").append('svg')
 						    					.attr('width', "100%")
 						    					.attr('height', "100%");
