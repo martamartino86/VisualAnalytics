@@ -1,14 +1,60 @@
-<!-- Ho sostituito questo file al precedente index.html per testare in localhost la visualizzazione dei line chart. 
-	 Rimodificando il nome ad EX-index.html torna tutto nella norma. -->
-
 <html>
 <head>
 	<link rel="stylesheet" type="text/css" href="style.css">
+
 	<script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+
 	<script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+
+	<script type="text/javascript" src="./datamaps.world.min.js"></script>
+	<script type="text/javascript" src="projectscript.js"></script>
 	<script type="text/javascript" src="graphscript.js"></script>
+
 </head>
+<title>Gender Inequality Index</title>
 <body>
-	<svg id="chartContainer" width="900" height="500"></svg>
+	<div id="bigcontainer">
+		<h1>Gender Inequality Index</h1>
+		<hr/>
+		<div id="mapcontainer"> <!-- contenitore della mappa --> </div> 
+		<div id="rightcontainer">
+			<div id="recap">
+				The Gender Inequality Index (GII) reflects gender-based
+				disadvantages in three dimensions (<b>reproductive health</b>,
+				<b>empowerment</b> and the <b>labour market</b>) for as many countries
+				as data of reasonable quality allow.<br>
+				It is also possible to analyze time trend for each factor just clicking on a country.<br><br>
+				<input type="radio" name="radio" value="gii" checked>GII<br>
+				<input type="radio" name="radio" value="health">Health<br>
+				<input type="radio" name="radio" value="empowerment">Empowerment<br>
+				<input type="radio" name="radio" value="labourforce">Labour force<br>
+			</div>
+			<div id="legenda">
+				<text id="limits" class="colorBarMinText" x="0" y="30" dx="0" dy="0" text-anchor="start"></text>
+				<text id="limits" class="colorBarMaxText" x="0" y="180" dx="0" dy="0" text-anchor="end"></text>
+				<canvas id="myCanvas" width="200" height="20" style="border:1px solid #d3d3d3;"></canvas><br>
+			</div>
+			<div id="indici">
+				The index (related to 2013 data) shows the loss
+				in potential human development due to inequality between
+				female and male achievements in these dimensions. It varies
+				between 0, where women and men fare equally, and 1, where
+				either gender fares as poorly as possible in all measured
+				dimensions.<br><br>
+			</div>
+		</div>
+		<div id="containerchart">
+			<div style="display: inline; width: 100%; height: 100%">
+				<button id="changevisual">Analyze trending</button>
+				<button id="closechart">X</button>
+			</div>
+			<svg id="divchart"></svg> <!-- contenitore del chart -->
+		</div>
+	</div>
+	<!-- soluzione con popup... eventualmente eliminabile a fine progetto
+	<div id="dialog" title="Basic dialog"></div>
+	<div data-role="popup" id="popupInfo" class="ui-content" data-theme="a" style="max-width:350px;"> -->
 </body>
 </html>
+

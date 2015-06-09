@@ -1,34 +1,45 @@
 body {
+	background-color: #2E2E2E;
 	font-family: Verdana;
 	font-size: 11px;
+	color: white;
+	margin: 0;
+	padding: 0;
 }
 h1 {
-	font: Georgia;
-	font-style: italic;
+	font: Tahoma;
+	font-style: bold;
+	text-align: center;
 }
 
-#container {
+#bigcontainer {
+	padding-left: 30px;
+	padding-right: 30px;
+	padding-top: 5px;
+}
+
+#mapcontainer {
 	overflow: hidden;
-	border: 1px solid #000000;
+	position: absolute;
+	border: 1px dotted #FFFFFF;
 	margin: 0 auto;
 	padding: 0px;
-	position: relative;
 	width: 1000px;
-	height: 700px;
+	height: 600px;
 	float: left;
 }
 
 #rightcontainer {
-	float: left;
 	width: 200px;
 	height: 500px;
+	margin: auto;
+	float: right;
 }
 
 #recap {
 	width: 200px;
 	float: left;
-	margin-left: 40px;
-	border: 1px dotted #000000;
+	border: 1px dotted #FFFFFF;
 	padding: 10px;
 	text-align: justify;
 }
@@ -37,8 +48,7 @@ h1 {
 	width: 200px;
 	height: 35px;
 	float: left;
-	margin-left: 40px;
-	border: 1px dotted #000000;
+	border: 1px dotted #FFFFFF;
 	padding: 10px;
 	text-align: justify;
 }
@@ -47,26 +57,98 @@ h1 {
 	width: 200px;
 	height: 170px;
 	float: left;
-	margin-left: 40px;
-	border: 1px dotted #000000;
+	border: 1px dotted #FFFFFF;
 	padding: 10px;
 	text-align: justify;
 }
 
+#containerchart {
+	visibility: hidden;
+	position: absolute;
+	top: 50%;
+  	left: 50%;
+  	margin-top:-250px;
+	margin-left:-450px;
+	width: 900px;
+  	height: 500px;
+  	stroke: #FFFFFF;
+  	fill: #FFFFFF;
+	border: 1px dotted #FFFFFF;
+	padding-top: 30px;
+	padding-bottom: 20px;
+	padding-right: 40px;
+  	background-color: #2E2E2E;
+  	z-index: 10;
+}
+
+#divchart {
+	visibility: hidden;
+	position: absolute;
+	top: 50%;
+  	left: 50%;
+  	margin-top:-250px;
+	margin-left:-450px;
+	width: 870px;
+  	height: 450px;
+  	stroke: #FFFFFF;
+  	fill: #FFFFFF;
+	padding-top: 30px;
+	padding-bottom: 20px;
+	padding-right: 40px;
+  	z-index: 10;
+}
+
+#changevisual {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 10;
+}
+
+#closechart {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 10;
+}
 
 .hoverinfo {
 	font-weight:bold;
 	text-align: center;
+	color: #2E2E2E;
+	background-color: #FFFFFF;
 }
 
 .hoverinfo_no {
+	padding: 5px;
+	border: 1px dotted #CCCCCC;
 	font-size: 13px;
 	font-style:italic;
+	color: #2E2E2E;
+	background-color: #FFFFFF;
 }
 
 .axis path,
 .axis line {
   fill: none;
-  stroke: "blue";
-  shape-rendering: crispEdges;
+  stroke: #000;
+  stroke-width: 0.7;
+  shape-rendering: geometricPrecision;
+}
+
+.path {
+	
+}
+
+.xAxis {
+	stroke: #FFFFFF;
+}
+
+.tick {
+	stroke: #FFFFFF;
+}
+
+.yAxis {
+	stroke: #FFFFFF;
+	fill: #FFFFFF;
 }

@@ -2,7 +2,7 @@ var map = null;
 var colormap;
 var factor = "gii"; // default factor
 var gii_palette = ["#FFE8F6", "#AD3D7E"];
-var health_palette = ["#deebf7", "#c6dbef", "#9ecae1","#6baed6","#4292c6","#08519c"]; // da più chiaro a più scuro (azzurro blu)
+var health_palette = ["#9ecae1","#6baed6","#4292c6","#08519c"]; // da più chiaro a più scuro (azzurro blu)
 var empow_palette = ["#fdae6b", "#fd8d3c", "#f16913", "#d94801", "#a63603", "#7f2704"]; // da più chiaro a più scuro (arancione marrone)
 var labourf_palette = ["#dadaeb", "#bcbddc", "#9e9ac8", "#807dba", "#6a51a3", "#54278f", "#3f007d"]; // (viola chiaro scuro)
 var dsv = d3.dsv(";", "text/plain");
@@ -15,9 +15,9 @@ var d1 = {}, d2 = {}; // TEST
 function color_factor(data) {
 	switch (factor) {
 		case "gii":
-			max_dataset = d3.max(data, function(d){return parseFloat(d.GII2013);});
+			max_dataset = d3.max(data, function(d){return parseFloat(d.GII2013.replace(',','.'));});
 			min_dataset = d3.min(data, function(d) {
-				q = parseFloat(d.GII2013);
+				q = parseFloat(d.GII2013.replace(',','.'));
 				if (q == -1) return max_dataset+1;
 				else return q;
 			})
@@ -26,37 +26,39 @@ function color_factor(data) {
 				.range(gii_palette);
 			break;
 		case "health":
-			max_dataset = d3.max(data, function(d){return parseFloat(d.HLT2013);});
+			max_dataset = d3.max(data, function(d){return parseFloat(d.HLT2013.replace(',','.'));});
 			min_dataset = d3.min(data, function(d) {
-				q = parseFloat(d.HLT2013);
+				q = parseFloat(d.HLT2013.replace(',','.'));
 				if (q == -1) return max_dataset+1;
 				else return q;
 			})
 			colormap = d3.scale.log()
-				.domain([min_dataset*1000, 450, 510, 520, 530, 540, 550, 560, 570, 580, 600, 650, 750, 850, 950, 1050, 1100, 1400, max_dataset*1000]) // 510, 520, 530, 540, 550, 560,
+				.domain([min_dataset*1000, 520, 530, 540, 550, 560, 570, 580, 600, 620, 640, 650, 700, 730, max_dataset*1000])
 				.range(health_palette);
+				console.log("[health] min: "+min_dataset+" max: "+max_dataset);
 			break;
 		case "empowerment":
-			max_dataset = d3.max(data, function(d) {return parseFloat(d.EMP2013);})
+			max_dataset = d3.max(data, function(d) {return parseFloat(d.EMP2013.replace(',','.'));});
 			min_dataset = d3.min(data, function(d) {
-				q = parseFloat(d.EMP2013);
+				q = parseFloat(d.EMP2013.replace(',','.'));
 				if (q == -1) return max_dataset+1;
 				else return q;
 			})
-			colormap = d3.scale.log()
-				.domain([min_dataset*1000, 700, 800, 900, 1000, 1100, max_dataset*1000])
+			colormap = d3.scale.linear()
+				.domain([min_dataset*1000, 200, 300, 400, 500, 600, max_dataset*1000])
 				.range(empow_palette);
 			break;
 		case "labourforce":
-			max_dataset = d3.max(data, function(d) {return parseFloat(d.LFRP2013);})
+			max_dataset = d3.max(data, function(d) {return parseFloat(d.LFRP2013.replace(',','.'));});
 			min_dataset = d3.min(data, function(d) {
-				q = parseFloat(d.LFRP2013);
+				q = parseFloat(d.LFRP2013.replace(',','.'));
 				if (q == -1) return max_dataset+1;
 				else return q;
 			})
 			colormap = d3.scale.log()
 				.domain([min_dataset*1000, 300, 400, 500, 600, 700, 800, max_dataset*1000])
 				.range(labourf_palette);
+			console.log("[labour] min: "+min_dataset+" max: "+max_dataset);
 			break;
 	}
 	$(".colorBarMinText").text(min_dataset);
@@ -70,10 +72,10 @@ function get_data(data) {
 	colormap = color_factor(data);
 	for (d in data) {
         country = data[d].iso3;
-        v1 = parseFloat(data[d].GII2013);//.replace(',','.'));
-        v2 = parseFloat(data[d].HLT2013);//.replace(',','.'));
-        v3 = parseFloat(data[d].EMP2013);//.replace(',','.'));
-        v4 = parseFloat(data[d].LFRP2013);//.replace(',','.'));
+        v1 = parseFloat(data[d].GII2013.replace(',','.'));
+        v2 = parseFloat(data[d].HLT2013.replace(',','.'));
+        v3 = parseFloat(data[d].EMP2013.replace(',','.'));
+        v4 = parseFloat(data[d].LFRP2013.replace(',','.'));
         // dopo aver parsato tutti gli indici, li inserisco nel dizionario
     	d2[country] = {fillkey:country, GII2013: v1, HLT2013: v2, EMP2013: v3, LFRP2013: v4}
         //console.log(colormap(Math.round(1000*b)));
@@ -94,20 +96,20 @@ function get_data(data) {
 		if (v == -1.0)
         	d1[country] = "#A1A1A1"
         else
-        	d1[country] = colormap(Math.round(1000*v));						// dizionario 1: ISO3 -> colore
+        	d1[country] = colormap(Math.round(1000*v)); // dizionario 1: ISO3 -> colore
 	}
 	d1.defaultFill = '#A1A1A1';
 	return [d1, d2];
 }
 
 function initiate_map() {
-	console.log("initiate_map");									// get GII data and build map object
+	console.log("initiate_map"); // get GII data and build map object
 	dsv("starting_dataset.csv", function(data){
-		var dict = get_data(data);									// mi costruisco i dizionari (con tanto di colorazione già pronta)
+		var dict = get_data(data); // mi costruisco i dizionari (con tanto di colorazione già pronta)
 		// se la mappa non l'ho ancora costruita, gli assegno i dati ecc.
 		if (map == null) {
 			map = new Datamap({
-				element: document.getElementById('container'),
+				element: document.getElementById('mapcontainer'),
 				geographyConfig: {
 					highlightBorderColor: '#bada55',
 					popupTemplate: function(geography, data) { // data rappresenta il mio {fillKey: <>, GII2013: <>, HLT2013: <>, ...} del Paese su cui sono!
@@ -154,51 +156,24 @@ function initiate_map() {
 				done: function (datamap){
 					datamap.svg.selectAll('.datamaps-subunit')
 						.on('click',function(geography){	// evento CLICK MAPPA: nuova finestra con dati temporali del factor
-							console.log(geography.id);
-							miageografia = geography;
-							$('#dialog').dialog({
-						    	show: {
-						        	effect: "fade",
-						        	duration: 500
-						      	},
-						      	hide: {
-						        	effect: "fade",
-						        	duration: 500
-						      	}
-						    });
-						    $('#dialog').ready(function() {
-						    	switch (factor) {
-						    		case 'gii':
-						    			dsv("gii_index.csv", function(data) {
-						    				miadata = data;
-						    				pos = searchCountry(geography,data);
-						    				if (pos == -1) {
-						    					$("#dialog").append(geography.properties.name+"\'s data are not available.")
-						    					return;
-						    				}		    					
-						    				var d = data[pos]; // Paese da evidenziare: geography.id
-						    				var svg = $("#dialog").append('svg')
-						    					.attr('width', "100%")
-						    					.attr('height', "100%");
-						    				var plot = d3.layout.lines;
-						    			});
-						    			break;
-						    		case 'health':
-
-						    			break;
-						    		case 'empowerment':
-
-						    			break;
-						    		case 'labourforce':
-
-						    			break;
-						    	}
-						    });
-					});
+							// se i dati non sono disponibili, non visualizzo neanche il div.
+		    				pos = searchCountry(geography,data);
+							if (pos == -1) {
+								$("#dialog").append(geography.properties.name+"\'s data are not available.")
+								return;
+							}
+							// rendo visibile il divchart
+							d3.select("#divchart")
+								.style("visibility", "visible");
+							d3.select("#containerchart")
+								.style("visibility", "visible");
+							// chiamo la funzione di graphscript.js
+							linechart(factor, geography.id);
+						});
 					datamap.svg.call(d3.behavior.zoom().on("zoom", redraw));	// ZOOM rotella v double click
 		            function redraw() {
 		            	datamap.svg.selectAll("g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-		            	console.log("[ZOOM] translate: "+d3.event.translate+"; scale: "+d3.event.scale);
+		            	//console.log("[ZOOM] translate: "+d3.event.translate+"; scale: "+d3.event.scale);
 		            }
 				}
 			});
@@ -208,12 +183,12 @@ function initiate_map() {
 	});
 	console.log("esco da initiate_map");
 }
-
+var meh;
 // CORPO DEL TUTTO
 var fancy;
 $("document").ready(function(){
-	var width = document.getElementById('container').offsetWidth;
-	var height = document.getElementById('container').offsetHeight;
+	var width = document.getElementById('mapcontainer').offsetWidth;
+	var height = document.getElementById('mapcontainer').offsetHeight;
 	// MAPPA INIZIALE
 	initiate_map();
 	set_legend(gii_palette);
@@ -274,16 +249,3 @@ function searchCountry(geomappa, data) {
 	}
 	return -1;
 }
-
-// function myprojection(){
-// 	function(element) {
-//     var projection = d3.geo.equirectangular()
-//     	.center([23, -3])
-//     	.rotate([4.4, 0])
-//     	.scale(400)
-//     	.translate([element.offsetWidth / 2, element.offsetHeight / 2]);
-//     var path = d3.geo.path()
-//     	.projection(projection);
-    
-//     return {path: path, projection: projection};
-// }
