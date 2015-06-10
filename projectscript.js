@@ -78,7 +78,6 @@ function get_data(data) {
         v4 = parseFloat(data[d].LFRP2013.replace(',','.'));
         // dopo aver parsato tutti gli indici, li inserisco nel dizionario
     	d2[country] = {fillkey:country, GII2013: v1, HLT2013: v2, EMP2013: v3, LFRP2013: v4}
-        //console.log(colormap(Math.round(1000*b)));
         switch (factor) {
         	case "gii":
         		v = v1;
@@ -113,8 +112,6 @@ function initiate_map() {
 				geographyConfig: {
 					highlightBorderColor: '#bada55',
 					popupTemplate: function(geography, data) { // data rappresenta il mio {fillKey: <>, GII2013: <>, HLT2013: <>, ...} del Paese su cui sono!
-						//miadata = data;
-						//miageografia = geography;
 						// data.fillkey corrisponde al mio d2.fillkey.
 						// data (che dovrebbe dirmi dove sono col mouse) non ha alcun valore se non gli ho assegnato precedentemente un valore io.
 						// Quindi devo prima controllare che coincida con geography.id (altrimenti non accedo!)
@@ -157,8 +154,8 @@ function initiate_map() {
 					datamap.svg.selectAll('.datamaps-subunit')
 						.on('click',function(geography){	// evento CLICK MAPPA: nuova finestra con dati temporali del factor
 							// se i dati non sono disponibili, non visualizzo neanche il div.
-		    				pos = searchCountry(geography,data);
-							if (pos == -1) {
+		    				pos = searchCountryAndValue(geography,data);
+							if (pos == -1)  {
 								$("#dialog").append(geography.properties.name+"\'s data are not available.")
 								return;
 							}
@@ -241,10 +238,26 @@ function set_legend(p) {
 	ctx.fillStyle = grd;
 	ctx.fillRect(0, 0, 220, 220);
 }
-
-function searchCountry(geomappa, data) {
+// controlla se il Country selezionato nella geomappa è presente nei miei dati, e se è presente controlla che non abbia valore -1
+function searchCountryAndValue(geomappa, data) {
+	var valname;
+	switch (factor) {
+		case "gii":
+			valname = "GII2013";
+			break;
+		case "health":
+			valname = "HLT2013";
+			break;
+		case "empowerment":
+			valname = "EMP2013";
+			break;
+		case "labourforce":
+			valname = "LFRP2013";
+			break;
+		
+	}
 	for (d in data) {
-		if (geomappa.id == data[d].iso3)
+		if ((geomappa.id == data[d].iso3) && (parseFloat(data[d][valname]) != -1))
 			return d;
 	}
 	return -1;

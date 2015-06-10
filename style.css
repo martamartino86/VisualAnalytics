@@ -141,7 +141,8 @@ h1 {
 }
 
 .xAxis {
-	stroke: #FFFFFF;
+	stroke: none;
+	fille: none;
 }
 
 .tick {

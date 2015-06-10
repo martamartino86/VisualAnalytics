@@ -12,12 +12,12 @@ MARGIN = {
 };
 
 // debug stuff:
-var miadata;
-var old_data;
-var datanest;
-var miacountry;
-var param;
-var mybutton;
+// var miadata;
+// var old_data;
+// var datanest;
+// var miacountry;
+// var param;
+// var mybutton;
 
 // funzione che gestisce il line chart.
 function linechart(factor, selectedISO) {
@@ -90,7 +90,7 @@ function linechart(factor, selectedISO) {
 			}
 		}
 		data = dataNew;
-		miadata = data; // DEBUG
+		//miadata = data; // DEBUG
 
 		data.forEach(function (d){
 			d.year = parseDate(d.year);
@@ -103,10 +103,10 @@ function linechart(factor, selectedISO) {
 			]);
 		xAxis = d3.svg.axis()
 			.scale(xRange)
-			//.tickValues(years)
 			.ticks(years.length)
-			.tickSize(1)
-			.tickSubdivide(true);
+			.tickSize(0)
+			.innerTickSize(10)
+			.tickSubdivide(false);
 		yAxis = d3.svg.axis()
 			.scale(yRange)
 			.orient("left")
@@ -115,7 +115,7 @@ function linechart(factor, selectedISO) {
 
 		// raccolgo i dati per Country, perché voglio disegnare una sola linea per Country
 		data = d3.nest().key(function(d) { return d.iso; }).entries(data);
-		datanest = data; // DEBUG
+		//datanest = data; // DEBUG
 
 		// se gli assi non esistono li appendo, altrimenti li aggiorno
 		if (vis.selectAll(".yAxis")[0].length === 0){
@@ -155,54 +155,63 @@ function linechart(factor, selectedISO) {
 		// bindo i dati
 		var countryUpdate = vis.selectAll(".line")
 			.data(data, function(d) {return d.key} );
+
 		// countryUpdate
 		// 	.append("g")
 		// 		.attr("class", "country");
+		// aggiorno le linee già esistenti da disegnare
 		countryUpdate.transition()
 			.duration(750)
 			.attr("class", "line")
 			.attr("d", function(d) {return linefun(d.values); })
 			.attr("id", function(d) {return createid(d.key); })
-			.attr("stroke", function(d) {return colorfun(d.key); })
-			.attr("stroke-width", 1)
-			.attr("fill", "none");
+			.attr("stroke", function(d) {return setcolor(d.key); })
+			.attr("stroke-width", function(d) {return setstroke(d.key); })
+			.attr("fill", "none")
+			.style("opacity", function(d) {return setopacity(d.key); });
 		// disegno le linee: nei country inserisco un path per ogni riga
 		countryUpdate.enter()
 			.append("path")
 			.attr("class", "line")
 			.attr("d", function(d) {return linefun(d.values); })
 			.attr("id", function(d) {return createid(d.key); })
-			.attr("stroke", function(d) {return colorfun(d.key); })
-			.attr("stroke-width", 1)
+			.attr("stroke", function(d) {return setcolor(d.key); })
+			.attr("stroke-width", function(d) {return setstroke(d.key); })
 			.attr("fill", "none")
-			.style("opacity", 1) //function(d) {return setopacity(d.key); })
-			//.style("z-index", function(d) {return zetaindex(d.key); })
+			.style("opacity", function(d) {return setopacity(d.key); })
+			.style("z-index", function(d) {return zetaindex(d.key); })
 			.on("mouseover", function(d) {
-				vis.selectAll(".line")
-					.style("opacity", 0.1);
+				// vis.selectAll(".line")
+				// 	.style("opacity", 0.1);
 				d3.select(this)
-					.attr("stroke-width", 3)
-					.attr("z-index", 2000)
-					.style("opacity", 1);
+					// .attr("stroke-width", 3)
+					// .attr("z-index", 2000)
+					// .style("opacity", 1);
 			})
 			.on("mouseout", function(d) {
-				var line = d3.select(this)
-				vis.selectAll(".line")
-					.style("opacity", 1.0);
-				line.attr("stroke-width", 1)
-					.attr("z-index", -1)
-					.style("opacity", 1.0);
-				// div.style("opacity", 0.0)
-				// 	.text("");
+				var line = d3.select(this);
+
+				// vis.selectAll(".line")
+				// 	.style("opacity", 1.0);
+				// vis.selectAll("#otherCountry")
+				// 	.attr("stroke-width", 1)
+				// 	.attr("z-index", -1)
+				// 	.style("opacity", 0.5);
+				// vis.select("#selectedCountry")
+				// 	.attr("stroke-width", 3)
+				// 	.style("opacity", 1.0);
 			});
 		
-		// voglio stampare la stringa relativa al Country selezionato: devo posizionarla in base a x e y del 2013
-		countryUpdate.append("text")
-			.attr("transform", function(d) { return "translate(" + xRange(d.values[d.values.length-1].year) + "," + yRange(d.values[d.values.length-1].val) + ")"; })
-			.attr("dy", ".15em")
-			.attr("text-color", "red")
+		// appendo la stringa relativa al Country selezionato: devo posizionarla in base a x e y del 2013
+		vis.selectAll(".line")
+			.append("text")
+			.attr("transform", function(d) {
+				return "translate(" + xRange(d.values[d.values.length-1].year) + "," + yRange(d.values[d.values.length-1].val) + ")"; })
+			.attr("dy", ".35em")
+			.attr("text-anchor", "start")
+			.style("fill", "red")
 			.style("text-decoration", "bold")
-			.style("visibility", function(d) { return visibilitytext(d.key); })
+			.style("visibility", "visible")
 			.text(function(d) {return d.key;} );
 		// rimuovo gli oggetti che non servono per i dati attuali
 		countryUpdate.exit()
@@ -216,27 +225,27 @@ function linechart(factor, selectedISO) {
 			state = "single";
 			switch (factor) {
 				case 'gii':
-					dsv("gii_index.csv", function(data) {
-						data = findData(data);
-						createChart(data);
+					dsv("gii_index.csv", function(newdata) {
+						newdata = findData(newdata);
+						createChart(newdata);
 					});
 					break;
 				case 'health':
-					dsv("health_index.csv", function(data) {
-						data = findData(data);
-						createChart(data);
+					dsv("health_index.csv", function(newdata) {
+						newdata = findData(newdata);
+						createChart(newdata);
 					});
 					break;
 				case 'empowerment':
-					dsv("empowerment_index.csv", function(data) {
-						data = findData(data);
-						createChart(data);
+					dsv("empowerment_index.csv", function(newdata) {
+						newdata = findData(newdata);
+						createChart(newdata);
 					});
 					break;
 				case 'labourforce':
-					dsv("labourforce_index.csv", function(data) {
-						data = findData(data);
-						createChart(data);
+					dsv("labourforce_index.csv", function(newdata) {
+						newdata = findData(newdata);
+						createChart(newdata);
 					});
 					break;
 			}
@@ -246,27 +255,27 @@ function linechart(factor, selectedISO) {
 			state = "multiple";
 			switch (factor) {
 				case 'gii':
-					dsv("gii_index.csv", function(data) {
-						createChart(data);
+					dsv("gii_index.csv", function(newdata) {
+						createChart(newdata);
 					});
 					break;
 				case 'health':
-					dsv("health_index.csv", function(data) {
-						createChart(data);
+					dsv("health_index.csv", function(newdata) {
+						createChart(newdata);
 					});
 					break;
 				case 'empowerment':
-					dsv("empowerment_index.csv", function(data) {
-						createChart(data);
+					dsv("empowerment_index.csv", function(newdata) {
+						createChart(newdata);
 					});
 					break;
 				case 'labourforce':
-					dsv("labourforce_index.csv", function(data) {
-						createChart(data);
+					dsv("labourforce_index.csv", function(newdata) {
+						createChart(newdata);
 					});
 					break;
 			}
-			btn.html("Analyze trending");
+			btn.html("Analyze Country trending");
 		}
 	});
 
@@ -277,7 +286,7 @@ function linechart(factor, selectedISO) {
 		d3.select("#divchart")
 			.style("visibility","hidden");
 		// riporto il bottone al valore principale
-		$("#changevisual").html("Analyze trending");
+		$("#changevisual").html("Analyze Country trending");
 		// ripulisco il chart
 		d3.select("#chartTitle")
 			.remove();
@@ -287,7 +296,7 @@ function linechart(factor, selectedISO) {
 			.remove();
 		d3.selectAll(".line")
 			.remove();
-	})
+	});
 
 	// UTILITY FUNCTIONS
 	findData = function(data) {
@@ -301,11 +310,18 @@ function linechart(factor, selectedISO) {
 		return (x === y);
 	}
 
-	colorfun = function(d) {
+	setcolor = function(d) {
 		if (matchCountry(d,selectedISO))
-			return "red";
+			return "#B20000";
 		else
-			return "grey";
+			return "#A2A2A2";
+	}
+
+	setstroke = function(d) {
+		if (matchCountry(d,selectedISO))
+			return 3;
+		else
+			return 1;
 	}
 
 	visibilitytext = function(d) {
@@ -315,12 +331,12 @@ function linechart(factor, selectedISO) {
 			return "hidden";
 	}
 
-	// zetaindex = function(d) {
-	// 	if (matchCountry(d,selectedISO))
-	// 		return 2000;
-	// 	else
-	// 		return -1;
-	// }
+	zetaindex = function(d) {
+		if (matchCountry(d,selectedISO))
+			return 2000;
+		else
+			return -1;
+	}
 
 	createid = function(d) {
 		if (matchCountry(d,selectedISO))
@@ -333,7 +349,7 @@ function linechart(factor, selectedISO) {
 		if (matchCountry(d,selectedISO))
 			return 1.0;
 		else
-			return 0.5;
+			return 0.4;
 	}
 }
 //});
