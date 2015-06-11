@@ -1,6 +1,3 @@
-var selectedCountry = ""; // serve qui, globale
-var dsv = d3.dsv(";", "text/plain"); //		<<<--- GIA' PRESENTE NEL FILE projectscript.js
-
 // chart constants
 WIDTH = 870;
 HEIGHT = 450;
@@ -16,20 +13,22 @@ MARGIN = {
 // var old_data;
 // var datanest;
 // var miacountry;
-// var param;
+ var param;
 // var mybutton;
 
 // funzione che gestisce il line chart.
-function linechart(factor, selectedISO) {
+function linechart(selectedISO) {
+	console.log(factor);
+	var selectedCountry = "";
 	var state = "multiple"; // stato di visualizzazione del chart
 	var vis = d3.select("#divchart");
 
 	// imposto attributi del chart che non cambieranno
-	xRange = d3.time.scale()
+	var xRange = d3.time.scale()
 		.range([MARGIN.left, WIDTH]);
-	yRange = d3.scale.linear()
+	var yRange = d3.scale.linear()
 		.range([HEIGHT - MARGIN.top, MARGIN.bottom]);
-	linefun = d3.svg.line()
+	var linefun = d3.svg.line()
 	.x(function(d) {
 		return xRange(d.year);
 	})
@@ -63,22 +62,23 @@ function linechart(factor, selectedISO) {
 	}
 
 	function createChart(data) {
+		console.log(factor);
 		var years = [];
 		var parseDate = d3.time.format("%Y").parse;
 		var i = 0;
 
 		// array degli anni del dataset
-		for (d in data[0]) {
+		for (var d in data[0]) {
 			if (!(isNaN(d)))
 				years[i++] = d;
 		}
 
 		// creo una struttura dati migliore
-		dataNew = [];
-		for (d in data) {
+		var dataNew = [];
+		for (var d in data) {
 			if (data[d].iso3 == selectedISO)
 				selectedCountry = data[d].Country;
-			for (y in years) {
+			for (var y in years) {
 				var v = (data[d][years[y]]).replace(',','.');
 				if (v != -1)
 					dataNew.push({
@@ -89,29 +89,45 @@ function linechart(factor, selectedISO) {
 				});
 			}
 		}
-		data = dataNew;
+		var data = dataNew;
 		//miadata = data; // DEBUG
 
 		data.forEach(function (d){
 			d.year = parseDate(d.year);
 		});
-		// mappo i min&max del dataset sugli assi
+
 		xRange.domain(d3.extent(data, function(d) { return d.year; }));
-		yRange.domain([
-				d3.min(data, function(d) {return d.val;}),
-				d3.max(data, function(d) {return d.val;})
-			]);
-		xAxis = d3.svg.axis()
+
+		var max = d3.max(data, function(d) {return d.val;});
+		var min = d3.min(data, function(d) {return d.val;});
+		var ext = max - min;
+		min = min - 0.05;
+		max = max + 0.05;
+		yRange.domain([min,max]);
+		// yRange.domain([
+		// 		d3.min(data, function(d) {return d.val;}),
+		// 		d3.max(data, function(d) {return d.val;})
+		// 	]);
+		var xAxis = d3.svg.axis()
 			.scale(xRange)
 			.ticks(years.length)
 			.tickSize(0)
 			.innerTickSize(10)
 			.tickSubdivide(false);
-		yAxis = d3.svg.axis()
+		var yAxis = d3.svg.axis()
 			.scale(yRange)
 			.orient("left")
 			.tickSize(1)
 			.tickSubdivide(true);
+	
+		var tip = d3.tip()
+			.attr('class', 'd3-tip')
+			.offset([-10, 0])
+			.html(function(d) {
+				console("tip:"+d.Country)
+				return d.Country;
+			});
+		
 
 		// raccolgo i dati per Country, perché voglio disegnare una sola linea per Country
 		data = d3.nest().key(function(d) { return d.iso; }).entries(data);
@@ -153,68 +169,80 @@ function linechart(factor, selectedISO) {
 		   }
 
 		// bindo i dati
-		var countryUpdate = vis.selectAll(".line")
-			.data(data, function(d) {return d.key} );
+		var country = vis.selectAll(".country")
+			.data(data, function(d) {param = d; return d.key} );
 
-		// countryUpdate
-		// 	.append("g")
-		// 		.attr("class", "country");
 		// aggiorno le linee già esistenti da disegnare
-		countryUpdate.transition()
+		vis.selectAll("path.line")
+			.transition()
 			.duration(750)
 			.attr("class", "line")
 			.attr("d", function(d) {return linefun(d.values); })
-			.attr("id", function(d) {return createid(d.key); })
 			.attr("stroke", function(d) {return setcolor(d.key); })
 			.attr("stroke-width", function(d) {return setstroke(d.key); })
 			.attr("fill", "none")
 			.style("opacity", function(d) {return setopacity(d.key); });
+
 		// disegno le linee: nei country inserisco un path per ogni riga
-		countryUpdate.enter()
+		var countryEnter = country
+			.enter()
+			.append("g") // aggiunta
+			.attr("class","country")
 			.append("path")
 			.attr("class", "line")
 			.attr("d", function(d) {return linefun(d.values); })
-			.attr("id", function(d) {return createid(d.key); })
+			.attr("stroke", "#2E2E2E")
+			.attr("stroke-width", 0)
+			.style("opacity", 0)
+			.on("mouseover", function(d) {
+				// linea over
+				var l = d3.select(this)
+				l.style("stroke-width","3px")
+				// d.key: unico text da mostrare
+				var x = "#"+d.key
+				vis.select(x)
+					.attr("transform", function(d) {
+						return "translate(" + xRange(d.values[d.values.length-1].year) + "," + yRange(d.values[d.values.length-1].val) + ")"; })
+					.style("visibility", "visible")
+					.style("stroke", "#FFFFFF")
+			})
+			.on("mouseout", function(d) {
+				var l = d3.select(this)
+				// lo stroke-width cambia in base al Country della line
+				l.style("stroke-width",function(d) {return setstroke(d.key) });
+				var x = "#"+d.key
+				vis.select(x)
+					.style("visibility", "hidden")
+					.style("stroke", "#FFFFFF")
+			});
+
+		countryEnter.transition()
+			.duration(750)
 			.attr("stroke", function(d) {return setcolor(d.key); })
 			.attr("stroke-width", function(d) {return setstroke(d.key); })
 			.attr("fill", "none")
 			.style("opacity", function(d) {return setopacity(d.key); })
 			.style("z-index", function(d) {return zetaindex(d.key); })
-			.on("mouseover", function(d) {
-				// vis.selectAll(".line")
-				// 	.style("opacity", 0.1);
-				d3.select(this)
-					// .attr("stroke-width", 3)
-					// .attr("z-index", 2000)
-					// .style("opacity", 1);
-			})
-			.on("mouseout", function(d) {
-				var line = d3.select(this);
 
-				// vis.selectAll(".line")
-				// 	.style("opacity", 1.0);
-				// vis.selectAll("#otherCountry")
-				// 	.attr("stroke-width", 1)
-				// 	.attr("z-index", -1)
-				// 	.style("opacity", 0.5);
-				// vis.select("#selectedCountry")
-				// 	.attr("stroke-width", 3)
-				// 	.style("opacity", 1.0);
-			});
-		
 		// appendo la stringa relativa al Country selezionato: devo posizionarla in base a x e y del 2013
-		vis.selectAll(".line")
+		vis.selectAll(".country")
 			.append("text")
+			.attr("id", function(d) {return d.key;})
 			.attr("transform", function(d) {
 				return "translate(" + xRange(d.values[d.values.length-1].year) + "," + yRange(d.values[d.values.length-1].val) + ")"; })
-			.attr("dy", ".35em")
+			.attr("dy", ".15em")
 			.attr("text-anchor", "start")
 			.style("fill", "red")
 			.style("text-decoration", "bold")
-			.style("visibility", "visible")
+			.style("visibility", "hidden")
 			.text(function(d) {return d.key;} );
+
+
 		// rimuovo gli oggetti che non servono per i dati attuali
-		countryUpdate.exit()
+		country.exit()
+			.transition()
+			.duration(750)
+			.style("opacity",0)
 			.remove();
 	}
 	
@@ -226,26 +254,26 @@ function linechart(factor, selectedISO) {
 			switch (factor) {
 				case 'gii':
 					dsv("gii_index.csv", function(newdata) {
-						newdata = findData(newdata);
-						createChart(newdata);
+						var data = findData(newdata);
+						createChart(data);
 					});
 					break;
 				case 'health':
 					dsv("health_index.csv", function(newdata) {
-						newdata = findData(newdata);
-						createChart(newdata);
+						var data = findData(newdata);
+						createChart(data);
 					});
 					break;
 				case 'empowerment':
 					dsv("empowerment_index.csv", function(newdata) {
-						newdata = findData(newdata);
-						createChart(newdata);
+						var data = findData(newdata);
+						createChart(data);
 					});
 					break;
 				case 'labourforce':
 					dsv("labourforce_index.csv", function(newdata) {
-						newdata = findData(newdata);
-						createChart(newdata);
+						var data = findData(newdata);
+						createChart(data);
 					});
 					break;
 			}
@@ -283,24 +311,27 @@ function linechart(factor, selectedISO) {
 		// nascondo i div del chart
 		d3.select("#containerchart")
 			.style("visibility","hidden");
+		$('#divchart').html("");
 		d3.select("#divchart")
 			.style("visibility","hidden");
 		// riporto il bottone al valore principale
 		$("#changevisual").html("Analyze Country trending");
 		// ripulisco il chart
-		d3.select("#chartTitle")
+		/*d3.select("#chartTitle")
 			.remove();
 		d3.select(".xAxis")
 			.remove();
 		d3.select(".yAxis")
 			.remove();
-		d3.selectAll(".line")
+		d3.selectAll("g.country")
 			.remove();
+		d3.selectAll("path.line")
+			.remove();*/
 	});
 
 	// UTILITY FUNCTIONS
 	findData = function(data) {
-		for (d in data) {
+		for (var d in data) {
 			if (data[d].iso3 === selectedISO)
 				return [data[d]];
 		}

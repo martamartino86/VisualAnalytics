@@ -32,10 +32,9 @@ function color_factor(data) {
 				if (q == -1) return max_dataset+1;
 				else return q;
 			})
-			colormap = d3.scale.log()
+			colormap = d3.scale.linear()
 				.domain([min_dataset*1000, 520, 530, 540, 550, 560, 570, 580, 600, 620, 640, 650, 700, 730, max_dataset*1000])
 				.range(health_palette);
-				console.log("[health] min: "+min_dataset+" max: "+max_dataset);
 			break;
 		case "empowerment":
 			max_dataset = d3.max(data, function(d) {return parseFloat(d.EMP2013.replace(',','.'));});
@@ -55,7 +54,7 @@ function color_factor(data) {
 				if (q == -1) return max_dataset+1;
 				else return q;
 			})
-			colormap = d3.scale.log()
+			colormap = d3.scale.linear()
 				.domain([min_dataset*1000, 300, 400, 500, 600, 700, 800, max_dataset*1000])
 				.range(labourf_palette);
 			console.log("[labour] min: "+min_dataset+" max: "+max_dataset);
@@ -105,6 +104,7 @@ function initiate_map() {
 	console.log("initiate_map"); // get GII data and build map object
 	dsv("starting_dataset.csv", function(data){
 		var dict = get_data(data); // mi costruisco i dizionari (con tanto di colorazione già pronta)
+		miadata = data;
 		// se la mappa non l'ho ancora costruita, gli assegno i dati ecc.
 		if (map == null) {
 			map = new Datamap({
@@ -165,7 +165,7 @@ function initiate_map() {
 							d3.select("#containerchart")
 								.style("visibility", "visible");
 							// chiamo la funzione di graphscript.js
-							linechart(factor, geography.id);
+							linechart(geography.id);
 						});
 					datamap.svg.call(d3.behavior.zoom().on("zoom", redraw));	// ZOOM rotella v double click
 		            function redraw() {
@@ -186,6 +186,7 @@ var fancy;
 $("document").ready(function(){
 	var width = document.getElementById('mapcontainer').offsetWidth;
 	var height = document.getElementById('mapcontainer').offsetHeight;
+	d3.select("h3").text("GII 2013");
 	// MAPPA INIZIALE
 	initiate_map();
 	set_legend(gii_palette);
