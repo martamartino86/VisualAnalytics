@@ -204,7 +204,7 @@ function linechart(selectedISO) {
 					.attr("transform", function(d) {
 						return "translate(" + xRange(d.values[d.values.length-1].year) + "," + yRange(d.values[d.values.length-1].val) + ")"; })
 					.style("visibility", "visible")
-					.style("stroke", "#FFFFFF")
+					.style("stroke", "#2E2E2E")
 			})
 			.on("mouseout", function(d) {
 				var l = d3.select(this)
@@ -213,7 +213,7 @@ function linechart(selectedISO) {
 				var x = "#"+d.key
 				vis.select(x)
 					.style("visibility", "hidden")
-					.style("stroke", "#FFFFFF")
+					.style("stroke", "#2E2E2E")
 			});
 
 		countryEnter.transition()
