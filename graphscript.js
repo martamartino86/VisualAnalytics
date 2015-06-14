@@ -13,7 +13,8 @@ MARGIN = {
 // var old_data;
 // var datanest;
 // var miacountry;
- var param;
+//  var param;
+//  var mycircle;
 // var mybutton;
 
 // funzione che gestisce il line chart.
@@ -97,17 +98,7 @@ function linechart(selectedISO) {
 		});
 
 		xRange.domain(d3.extent(data, function(d) { return d.year; }));
-
-		var max = d3.max(data, function(d) {return d.val;});
-		var min = d3.min(data, function(d) {return d.val;});
-		var ext = max - min;
-		min = min - 0.05;
-		max = max + 0.05;
-		yRange.domain([min,max]);
-		// yRange.domain([
-		// 		d3.min(data, function(d) {return d.val;}),
-		// 		d3.max(data, function(d) {return d.val;})
-		// 	]);
+		yRange.domain([d3.min(data, function(d) {return d.val;}) - 0.05, d3.max(data, function(d) {return d.val;}) + 0.05]);
 		var xAxis = d3.svg.axis()
 			.scale(xRange)
 			.ticks(years.length)
@@ -119,20 +110,11 @@ function linechart(selectedISO) {
 			.orient("left")
 			.tickSize(1)
 			.tickSubdivide(true);
-	
-		var tip = d3.tip()
-			.attr('class', 'd3-tip')
-			.offset([-10, 0])
-			.html(function(d) {
-				console("tip:"+d.Country)
-				return d.Country;
-			});
-		
 
 		// raccolgo i dati per Country, perché voglio disegnare una sola linea per Country
 		data = d3.nest().key(function(d) { return d.iso; }).entries(data);
 		//datanest = data; // DEBUG
-
+		assey = yAxis;
 		// se gli assi non esistono li appendo, altrimenti li aggiorno
 		if (vis.selectAll(".yAxis")[0].length === 0){
 		    // appendo gli assi
@@ -162,7 +144,6 @@ function linechart(selectedISO) {
 		        .attr("x", (WIDTH / 2))             
 		        .attr("y", 0 - (MARGIN.top / 2))
 		        .attr("text-anchor", "middle")  
-		        .style("color", "#FFFFFF") 
 		        .style("font-size", "16px") 
 		        .style("text-decoration", "bold")
 		        .text(selectedCountry + " - " + factor + " index");
@@ -170,10 +151,41 @@ function linechart(selectedISO) {
 
 		// bindo i dati
 		var country = vis.selectAll(".country")
-			.data(data, function(d) {param = d; return d.key} );
+			.data(data, function(d) {return d.key} );
 
-		// aggiorno le linee già esistenti da disegnare
-		vis.selectAll("path.line")
+		if (state === "single") {
+			country.selectAll(".cerchi")
+				.transition()
+				.duration(750)
+				.style("opacity",1);
+			country.selectAll(".point")
+				.data(function (d) {return d.values;})
+				.enter()
+				.append("g")
+					.attr("class","cerchi")
+				.append("circle")
+					.attr("class","point")
+					.attr("cx", function(d) {return xRange(d.year); })
+					.attr("cy", function(d) {return yRange(d.val); })
+					.attr("r", "5px")
+					.style("fill", "#FFFF00")
+					.style("visibility","visible")
+			country.selectAll(".cerchi")
+				.append("text")
+				.attr("x", function(d) {return xRange(d.year);} )
+				.attr("y", function(d) {return (yRange(d.val) - 7);} )
+				.style("font-size","10px")
+				.text(function(d) {return d.val;}); 
+		}
+		else if (state === "multiple") {
+			country.selectAll(".cerchi")
+				.transition()
+				.duration(750)
+				.style("opacity", 0);
+		}
+
+		// UPDATE: aggiorno le linee già esistenti da disegnare
+		var countryUpdate = vis.selectAll("path.line")
 			.transition()
 			.duration(750)
 			.attr("class", "line")
@@ -183,39 +195,41 @@ function linechart(selectedISO) {
 			.attr("fill", "none")
 			.style("opacity", function(d) {return setopacity(d.key); });
 
-		// disegno le linee: nei country inserisco un path per ogni riga
+		// ENTER: disegno le linee: nei country inserisco un path per ogni riga
 		var countryEnter = country
 			.enter()
 			.append("g") // aggiunta
-			.attr("class","country")
+				.attr("class","country")
 			.append("path")
-			.attr("class", "line")
-			.attr("d", function(d) {return linefun(d.values); })
-			.attr("stroke", "#2E2E2E")
-			.attr("stroke-width", 0)
-			.style("opacity", 0)
-			.on("mouseover", function(d) {
-				// linea over
-				var l = d3.select(this)
-				l.style("stroke-width","3px")
-				// d.key: unico text da mostrare
-				var x = "#"+d.key
-				vis.select(x)
-					.attr("transform", function(d) {
-						return "translate(" + xRange(d.values[d.values.length-1].year) + "," + yRange(d.values[d.values.length-1].val) + ")"; })
-					.style("visibility", "visible")
-					.style("stroke", "#2E2E2E")
-			})
-			.on("mouseout", function(d) {
-				var l = d3.select(this)
-				// lo stroke-width cambia in base al Country della line
-				l.style("stroke-width",function(d) {return setstroke(d.key) });
-				var x = "#"+d.key
-				vis.select(x)
-					.style("visibility", "hidden")
-					.style("stroke", "#2E2E2E")
-			});
+				.attr("class", "line")
+				.attr("d", function(d) {return linefun(d.values); })
+				.attr("stroke", "#2E2E2E")
+				.attr("stroke-width", 0)
+				.style("opacity", 0)
+				.on("mouseover", function(d) {
+					var coordinates = d3.mouse(this);
+					// linea over
+					var l = d3.select(this)
+					l.style("stroke-width","3px")
+					// d.key: unico text da mostrare
+					var x = "#"+d.key
+					vis.select(x)
+						.attr("transform", function(d) {
+							return "translate(" + xRange(d.values[d.values.length-1].year) + "," + yRange(d.values[d.values.length-1].val) + ")"; })
+						.style("visibility", "visible")
+						.style("stroke", "#2E2E2E")
+				})
+				.on("mouseout", function(d) {
+					var l = d3.select(this)
+					// lo stroke-width cambia in base al Country della line
+					l.style("stroke-width",function(d) {return setstroke(d.key) });
+					var x = "#"+d.key
+					vis.select(x)
+						.style("visibility", "hidden")
+						.style("stroke", "#2E2E2E")
+				});
 
+		// TRANSITION delle linee in ingresso (è qui che setto colore/stroke/ecc. che avranno una volta apparse)
 		countryEnter.transition()
 			.duration(750)
 			.attr("stroke", function(d) {return setcolor(d.key); })
@@ -237,8 +251,7 @@ function linechart(selectedISO) {
 			.style("visibility", "hidden")
 			.text(function(d) {return d.key;} );
 
-
-		// rimuovo gli oggetti che non servono per i dati attuali
+		// EXIT: rimuovo gli oggetti che non servono per i dati attuali (con transizione)
 		country.exit()
 			.transition()
 			.duration(750)
@@ -248,7 +261,7 @@ function linechart(selectedISO) {
 	
 	$("#changevisual").click(function (x) {
 		var btn = $("#changevisual");
-		mybutton = btn; // DEBUG
+		//mybutton = btn; // DEBUG
 		if (state === "multiple") {
 			state = "single";
 			switch (factor) {
@@ -383,17 +396,3 @@ function linechart(selectedISO) {
 			return 0.4;
 	}
 }
-//});
-
-
-		// // creo il div che servirà per i tooltip
-		// var div = d3.select("body")
-		// 	.append("div")
-		// 	.attr("class", "tooltip")
-		// 	.attr("width", "100")
-		// 	.attr("position", "absolute")
-		// 	.attr("text-align", "center")
-		// 	.attr("visibility", "visible")
-		// 	.style("opacity", 0.0)
-		// 	.style("background-color", "yellow")
-		// 	.style("border", "1px dotted black");
