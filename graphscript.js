@@ -330,7 +330,7 @@ function linechart(selectedISO) {
 		// riporto il bottone al valore principale
 		$("#changevisual").html("Analyze Country trending");
 		// ripulisco il chart
-		/*d3.select("#chartTitle")
+		d3.select("#chartTitle")
 			.remove();
 		d3.select(".xAxis")
 			.remove();
@@ -338,8 +338,6 @@ function linechart(selectedISO) {
 			.remove();
 		d3.selectAll("g.country")
 			.remove();
-		d3.selectAll("path.line")
-			.remove();*/
 	});
 
 	// UTILITY FUNCTIONS
