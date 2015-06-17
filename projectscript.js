@@ -239,24 +239,8 @@ function set_legend(p) {
 }
 // controlla se il Country selezionato nella geomappa è presente nei miei dati, e se è presente controlla che non abbia valore -1
 function searchCountryAndValue(geomappa, data) {
-	var valname;
-	switch (factor) {
-		case "gii":
-			valname = "GII2013";
-			break;
-		case "health":
-			valname = "HLT2013";
-			break;
-		case "empowerment":
-			valname = "EMP2013";
-			break;
-		case "labourforce":
-			valname = "LFRP2013";
-			break;
-		
-	}
 	for (d in data) {
-		if ((geomappa.id == data[d].iso3) && (parseFloat(data[d][valname]) != -1))
+		if (geomappa.id == data[d].iso3)
 			return d;
 	}
 	return -1;
