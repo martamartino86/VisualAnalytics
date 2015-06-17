@@ -1,15 +1,16 @@
 var map = null;
 var colormap;
 var factor = "gii"; // default factor
-var gii_palette = ["#FFE8F6", "#AD3D7E"];
-var health_palette = ["#9ecae1","#6baed6","#4292c6","#08519c"]; // da più chiaro a più scuro (azzurro blu)
-var empow_palette = ["#fdae6b", "#fd8d3c", "#f16913", "#d94801", "#a63603", "#7f2704"]; // da più chiaro a più scuro (arancione marrone)
-var labourf_palette = ["#dadaeb", "#bcbddc", "#9e9ac8", "#807dba", "#6a51a3", "#54278f", "#3f007d"]; // (viola chiaro scuro)
+var gii_palette = ["#FFE8F6", "#AD3D7E"]; // (rosa scuro -> chiaro)
+var health_palette = ["#f7fbff", "#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#08519c", "#08306b"] // (azzurro chiaro -> scuro)
+var empow_palette = ["#fdae6b", "#fd8d3c", "#f16913", "#d94801", "#a63603", "#7f2704"]; // (arancio -> marrone)
+var labourf_palette = ["#f7fcf5", "#e5f5e0", "#c7e9c0", "#a1d99b", "#74c476", "#41ab5d", "#41ab5d", "#005a32"]; // (verde chiaro -> scuro)
 var dsv = d3.dsv(";", "text/plain");
+var d1 = {}, d2 = {};
 
-var miageografia;	// TEST
-var miadata;		// TEST
-var d1 = {}, d2 = {}; // TEST
+// var miageografia;	// TEST
+// var miadata;		// TEST
+
 
 // crea e restituisce la funzione per colorare i dati da visualizzare
 function color_factor(data) {
@@ -33,7 +34,7 @@ function color_factor(data) {
 				else return q;
 			})
 			colormap = d3.scale.linear()
-				.domain([min_dataset*1000, 520, 530, 540, 550, 560, 570, 580, 600, 620, 640, 650, 700, 730, max_dataset*1000])
+				.domain([min_dataset*1000, 520, 530, 540, 550, 560, 570, 580, max_dataset*1000])
 				.range(health_palette);
 			break;
 		case "empowerment":
@@ -57,7 +58,6 @@ function color_factor(data) {
 			colormap = d3.scale.linear()
 				.domain([min_dataset*1000, 300, 400, 500, 600, 700, 800, max_dataset*1000])
 				.range(labourf_palette);
-			console.log("[labour] min: "+min_dataset+" max: "+max_dataset);
 			break;
 	}
 	$(".colorBarMinText").text(min_dataset);
@@ -101,7 +101,7 @@ function get_data(data) {
 }
 
 function initiate_map() {
-	console.log("initiate_map"); // get GII data and build map object
+	// get GII data and build map object
 	dsv("starting_dataset.csv", function(data){
 		var dict = get_data(data); // mi costruisco i dizionari (con tanto di colorazione già pronta)
 		miadata = data;
@@ -170,7 +170,6 @@ function initiate_map() {
 					datamap.svg.call(d3.behavior.zoom().on("zoom", redraw));	// ZOOM rotella v double click
 		            function redraw() {
 		            	datamap.svg.selectAll("g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-		            	//console.log("[ZOOM] translate: "+d3.event.translate+"; scale: "+d3.event.scale);
 		            }
 				}
 			});
@@ -178,7 +177,6 @@ function initiate_map() {
 		// a prescindere dall'esistenza o meno della mappa, faccio l'update per colorarla
 		map.updateChoropleth(dict[0]);
 	});
-	console.log("esco da initiate_map");
 }
 var meh;
 // CORPO DEL TUTTO

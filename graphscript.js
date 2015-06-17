@@ -7,6 +7,8 @@ MARGIN = {
 	bottom: 20,
 	left: 60
 };
+EXIT_TRANSITION_DELAY = 500;
+TRANSITION_DURATION = 750;
 
 // debug stuff:
 // var miadata;
@@ -19,7 +21,6 @@ MARGIN = {
 
 // funzione che gestisce il line chart.
 function linechart(selectedISO) {
-	console.log(factor);
 	var selectedCountry = "";
 	var state = "multiple"; // stato di visualizzazione del chart
 	var vis = d3.select("#divchart");
@@ -63,7 +64,6 @@ function linechart(selectedISO) {
 	}
 
 	function createChart(data) {
-		console.log(factor);
 		var years = [];
 		var parseDate = d3.time.format("%Y").parse;
 		var i = 0;
@@ -130,11 +130,11 @@ function linechart(selectedISO) {
 		else {
 			vis.select(".xAxis")
 				.transition()
-				.duration(750)
+				.duration(TRANSITION_DURATION)
 				.call(xAxis);
 			vis.select(".yAxis")
 				.transition()
-				.duration(750)
+				.duration(TRANSITION_DURATION)
 				.call(yAxis);
 		}
 		// titolo del grafico
@@ -142,10 +142,9 @@ function linechart(selectedISO) {
 			vis.append("text")
 				.attr("id", "chartTitle")
 		        .attr("x", (WIDTH / 2))             
-		        .attr("y", 0 - (MARGIN.top / 2))
+		        .attr("y", 0 - (MARGIN.top / 2) + 35)
 		        .attr("text-anchor", "middle")  
 		        .style("font-size", "16px") 
-		        .style("text-decoration", "bold")
 		        .text(selectedCountry + " - " + factor + " index");
 		   }
 
@@ -153,10 +152,27 @@ function linechart(selectedISO) {
 		var country = vis.selectAll(".country")
 			.data(data, function(d) {return d.key} );
 
-		if (state === "single") {
+		// EXIT: rimuovo gli oggetti che non servono per i dati attuali (con transizione)
+		country.exit()
+			.transition()
+			.duration(EXIT_TRANSITION_DELAY)
+			.style("opacity",1e-6)
+			.remove();
+
+		// se sto visualizzando tutte le righe, cancello gli eventuali circle creati precedentemente
+		if (state === "multiple") {
 			country.selectAll(".cerchi")
 				.transition()
-				.duration(750)
+				.delay(EXIT_TRANSITION_DELAY)
+				.duration(TRANSITION_DURATION)
+				.style("opacity", 1e-6)
+		}
+		// solo se sto visualizzando un'unica riga, devo creare i cerchietti coi valori
+		else if (state === "single") {
+			country.selectAll(".cerchi")
+				.transition()
+				.delay(EXIT_TRANSITION_DELAY)
+				.duration(TRANSITION_DURATION)
 				.style("opacity",1);
 			country.selectAll(".point")
 				.data(function (d) {return d.values;})
@@ -170,30 +186,27 @@ function linechart(selectedISO) {
 					.attr("r", "5px")
 					.style("fill", "#FFFF00")
 					.style("visibility","visible")
-			country.selectAll(".cerchi")
-				.append("text")
-				.attr("x", function(d) {return xRange(d.year);} )
-				.attr("y", function(d) {return (yRange(d.val) - 7);} )
-				.style("font-size","10px")
-				.text(function(d) {return d.val;}); 
-		}
-		else if (state === "multiple") {
-			country.selectAll(".cerchi")
-				.transition()
-				.duration(750)
-				.style("opacity", 0);
+			if ($(".cerchi").text().trim().length === 0) {
+				country.selectAll(".cerchi")
+					.append("text")
+					.attr("x", function(d) {return xRange(d.year);} )
+					.attr("y", function(d) {return (yRange(d.val) - 7);} )
+					.style("font-size","10px")
+					.text(function(d) {return d.val;});
+			}
 		}
 
-		// UPDATE: aggiorno le linee già esistenti da disegnare
+		// UPDATE: aggiorno le linee già esistenti da disegnare (che poi sarebbe l'unica rossa...)
 		var countryUpdate = vis.selectAll("path.line")
 			.transition()
-			.duration(750)
+			.delay(EXIT_TRANSITION_DELAY)
+			.duration(TRANSITION_DURATION)
 			.attr("class", "line")
 			.attr("d", function(d) {return linefun(d.values); })
-			.attr("stroke", function(d) {return setcolor(d.key); })
-			.attr("stroke-width", function(d) {return setstroke(d.key); })
-			.attr("fill", "none")
-			.style("opacity", function(d) {return setopacity(d.key); });
+			// .attr("stroke", function(d) {return setcolor(d.key); })
+			// .attr("stroke-width", function(d) {return setstroke(d.key); })
+			// .attr("fill", "none")
+			// .style("opacity", function(d) {return setopacity(d.key); });
 
 		// ENTER: disegno le linee: nei country inserisco un path per ogni riga
 		var countryEnter = country
@@ -205,7 +218,7 @@ function linechart(selectedISO) {
 				.attr("d", function(d) {return linefun(d.values); })
 				.attr("stroke", "#2E2E2E")
 				.attr("stroke-width", 0)
-				.style("opacity", 0)
+				.style("opacity", 1e-6)
 				.on("mouseover", function(d) {
 					var coordinates = d3.mouse(this);
 					// linea over
@@ -231,7 +244,8 @@ function linechart(selectedISO) {
 
 		// TRANSITION delle linee in ingresso (è qui che setto colore/stroke/ecc. che avranno una volta apparse)
 		countryEnter.transition()
-			.duration(750)
+			.delay(EXIT_TRANSITION_DELAY)
+			.duration(TRANSITION_DURATION)
 			.attr("stroke", function(d) {return setcolor(d.key); })
 			.attr("stroke-width", function(d) {return setstroke(d.key); })
 			.attr("fill", "none")
@@ -247,16 +261,9 @@ function linechart(selectedISO) {
 			.attr("dy", ".15em")
 			.attr("text-anchor", "start")
 			.style("fill", "red")
-			.style("text-decoration", "bold")
 			.style("visibility", "hidden")
 			.text(function(d) {return d.key;} );
 
-		// EXIT: rimuovo gli oggetti che non servono per i dati attuali (con transizione)
-		country.exit()
-			.transition()
-			.duration(750)
-			.style("opacity",0)
-			.remove();
 	}
 	
 	$("#changevisual").click(function (x) {
