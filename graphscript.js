@@ -77,17 +77,46 @@ function linechart(selectedISO) {
 		// creo una struttura dati migliore
 		var dataNew = [];
 		for (var d in data) {
-			if (data[d].iso3 == selectedISO)
+			if (data[d].iso3 == selectedISO) {
+				// selectedCountry: variabile di comodo per tenermi il nome del Country selezionato
 				selectedCountry = data[d].Country;
-			for (var y in years) {
-				var v = (data[d][years[y]]).replace(',','.');
-				if (v != -1)
-					dataNew.push({
-						iso: data[d].iso3,
-						Country: data[d].Country,
-						year: years[y],
-						val: parseFloat(v)
-				});
+				console.log("Ho trovato il Paese selezionato: "+selectedISO+ " "+selectedCountry);
+				var count = 0;
+				for (var y in years) {
+					var v = (data[d][years[y]]).replace(',','.');
+					if (v != -1)
+						dataNew.push({
+							iso: data[d].iso3,
+							Country: data[d].Country,
+							year: years[y],
+							val: parseFloat(v)
+					});
+					else count++;
+				}
+				if (count === years.length) {
+					console.log(selectedCountry+" ha "+count+" valori a -1.")
+					vis.append("text")
+						.attr("id", "chartTitle")
+				        .attr("x", (WIDTH / 2))             
+				        .attr("y", 0 - (MARGIN.top / 2) + 35)
+				        .attr("text-anchor", "middle")  
+				        .style("font-size", "16px") 
+				        .text(selectedCountry + "'s " + factor + " data not available.");
+				    $('#changevisual').attr("disabled", true);
+					return;
+				    }
+			}
+			else {
+				for (var y in years) {
+					var v = (data[d][years[y]]).replace(',','.');
+					if (v != -1)
+						dataNew.push({
+							iso: data[d].iso3,
+							Country: data[d].Country,
+							year: years[y],
+							val: parseFloat(v)
+					});
+				}
 			}
 		}
 		var data = dataNew;
@@ -267,6 +296,7 @@ function linechart(selectedISO) {
 	}
 	
 	$("#changevisual").click(function (x) {
+		console.log("CLICK!")
 		var btn = $("#changevisual");
 		//mybutton = btn; // DEBUG
 		if (state === "multiple") {
@@ -336,6 +366,8 @@ function linechart(selectedISO) {
 			.style("visibility","hidden");
 		// riporto il bottone al valore principale
 		$("#changevisual").html("Analyze Country trending");
+		$('#changevisual').attr("disabled", false);
+		$("#changevisual").off("click");
 		// ripulisco il chart
 		d3.select("#chartTitle")
 			.remove();
