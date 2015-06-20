@@ -80,7 +80,6 @@ function linechart(selectedISO) {
 			if (data[d].iso3 == selectedISO) {
 				// selectedCountry: variabile di comodo per tenermi il nome del Country selezionato
 				selectedCountry = data[d].Country;
-				console.log("Ho trovato il Paese selezionato: "+selectedISO+ " "+selectedCountry);
 				var count = 0;
 				for (var y in years) {
 					var v = (data[d][years[y]]).replace(',','.');
@@ -94,7 +93,6 @@ function linechart(selectedISO) {
 					else count++;
 				}
 				if (count === years.length) {
-					console.log(selectedCountry+" ha "+count+" valori a -1.")
 					vis.append("text")
 						.attr("id", "chartTitle")
 				        .attr("x", (WIDTH / 2))             
@@ -143,10 +141,9 @@ function linechart(selectedISO) {
 		// raccolgo i dati per Country, perché voglio disegnare una sola linea per Country
 		data = d3.nest().key(function(d) { return d.iso; }).entries(data);
 		//datanest = data; // DEBUG
-		assey = yAxis;
+
 		// se gli assi non esistono li appendo, altrimenti li aggiorno
 		if (vis.selectAll(".yAxis")[0].length === 0){
-		    // appendo gli assi
 			vis.append("svg:g")
 				.attr("class", "xAxis")
 				.attr("transform", "translate(0," + (HEIGHT - MARGIN.bottom) + ")")

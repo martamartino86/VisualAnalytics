@@ -12,7 +12,7 @@ var d1 = {}, d2 = {};
 // var miadata;		// TEST
 
 
-// crea e restituisce la funzione per colorare i dati da visualizzare
+// crea e restituisce la funzione per colorare i dati del "factor" da visualizzare
 function color_factor(data) {
 	switch (factor) {
 		case "gii":
@@ -69,32 +69,63 @@ function color_factor(data) {
 function get_data(data) {
 	// creo la funzione per colorare i dati
 	colormap = color_factor(data);
-	for (d in data) {
-        country = data[d].iso3;
-        v1 = parseFloat(data[d].GII2013.replace(',','.'));
-        v2 = parseFloat(data[d].HLT2013.replace(',','.'));
-        v3 = parseFloat(data[d].EMP2013.replace(',','.'));
-        v4 = parseFloat(data[d].LFRP2013.replace(',','.'));
-        // dopo aver parsato tutti gli indici, li inserisco nel dizionario
-    	d2[country] = {fillkey:country, GII2013: v1, HLT2013: v2, EMP2013: v3, LFRP2013: v4}
-        switch (factor) {
-        	case "gii":
-        		v = v1;
-        		break;
-        	case "health":
-        		v = v2;
-        		break;
-        	case "empowerment":
-        		v = v3;
-        		break;
-        	case "labourforce":
-        		v = v4;
-        		break;
-        }
-		if (v == -1.0)
-        	d1[country] = "#A1A1A1"
-        else
-        	d1[country] = colormap(Math.round(1000*v)); // dizionario 1: ISO3 -> colore
+	// creo i due dizionari (NB: d2 deve essere ricreato ogni volta, ma d1 no)
+	if ($.isEmptyObject(d2)) {
+		for (d in data) {
+	        country = data[d].iso3;
+	        v1 = parseFloat(data[d].GII2013.replace(',','.'));
+	        v2 = parseFloat(data[d].HLT2013.replace(',','.'));
+	        v3 = parseFloat(data[d].EMP2013.replace(',','.'));
+	        v4 = parseFloat(data[d].LFRP2013.replace(',','.'));
+	        // dopo aver parsato tutti gli indici, li inserisco nel dizionario
+	    	d2[country] = {fillkey:country, GII2013: v1, HLT2013: v2, EMP2013: v3, LFRP2013: v4}
+	        switch (factor) {
+	        	case "gii":
+	        		v = v1;
+	        		break;
+	        	case "health":
+	        		v = v2;
+	        		break;
+	        	case "empowerment":
+	        		v = v3;
+	        		break;
+	        	case "labourforce":
+	        		v = v4;
+	        		break;
+	        }
+	        // dizionario 1: ISO3 -> colore
+			if (v == -1.0)
+	        	d1[country] = "#A1A1A1"
+	        else
+	        	d1[country] = colormap(Math.round(1000*v));
+		}
+	}
+	else {
+		for (d in data) {
+	        country = data[d].iso3;
+	        v1 = parseFloat(data[d].GII2013.replace(',','.'));
+	        v2 = parseFloat(data[d].HLT2013.replace(',','.'));
+	        v3 = parseFloat(data[d].EMP2013.replace(',','.'));
+	        v4 = parseFloat(data[d].LFRP2013.replace(',','.'));
+	        switch (factor) {
+	        	case "gii":
+	        		v = v1;
+	        		break;
+	        	case "health":
+	        		v = v2;
+	        		break;
+	        	case "empowerment":
+	        		v = v3;
+	        		break;
+	        	case "labourforce":
+	        		v = v4;
+	        		break;
+	        }
+			if (v == -1.0)
+	        	d1[country] = "#A1A1A1"
+	        else
+	        	d1[country] = colormap(Math.round(1000*v)); // dizionario 1: ISO3 -> colore
+		}
 	}
 	d1.defaultFill = '#A1A1A1';
 	return [d1, d2];
@@ -111,14 +142,14 @@ function initiate_map() {
 				element: document.getElementById('mapcontainer'),
 				geographyConfig: {
 					highlightBorderColor: '#bada55',
-					popupTemplate: function(geography, data) { // data rappresenta il mio {fillKey: <>, GII2013: <>, HLT2013: <>, ...} del Paese su cui sono!
-						// data.fillkey corrisponde al mio d2.fillkey.
+					popupTemplate: function(geography, data) {
+						// data rappresenta una riga di d2: {fillKey: <>, GII2013: <>, HLT2013: <>, ...}
+						// relativa al Paese su cui sto facendo mouseover.
 						// data (che dovrebbe dirmi dove sono col mouse) non ha alcun valore se non gli ho assegnato precedentemente un valore io.
 						// Quindi devo prima controllare che coincida con geography.id (altrimenti non accedo!)
 						if (data === null)
 							return '<div class="hoverinfo_no">' + geography.properties.name + '\'s data not available'
 						else {
-						//if (data.fillkey == geography.id) {
 							switch (factor) {
 								case "gii":
 									index = "GII2013"
@@ -149,10 +180,10 @@ function initiate_map() {
 				fills: dict[0], //d1,
 				data: dict[1],  //d2,
 				projection: "mercator",
-				//setprojection: myprojection;
 				done: function (datamap){
 					datamap.svg.selectAll('.datamaps-subunit')
-						.on('click',function(geography){	// evento CLICK MAPPA: nuova finestra con dati temporali del factor
+						// evento CLICK MAPPA: nuova finestra con dati temporali del factor
+						.on('click',function(geography){
 							// se i dati non sono disponibili, non visualizzo neanche il div.
 		    				pos = searchCountryAndValue(geography,data);
 							if (pos == -1)  {
@@ -167,24 +198,23 @@ function initiate_map() {
 							// chiamo la funzione di graphscript.js
 							linechart(geography.id);
 						});
-					datamap.svg.call(d3.behavior.zoom().on("zoom", redraw));	// ZOOM rotella v double click
+					// ZOOM rotella || double click
+					datamap.svg.call(d3.behavior.zoom().on("zoom", redraw));
 		            function redraw() {
 		            	datamap.svg.selectAll("g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 		            }
 				}
 			});
 		}
-		// a prescindere dall'esistenza o meno della mappa, faccio l'update per colorarla
+		// per colorare la mappa
 		map.updateChoropleth(dict[0]);
 	});
 }
-var meh;
+
 // CORPO DEL TUTTO
-var fancy;
 $("document").ready(function(){
 	var width = document.getElementById('mapcontainer').offsetWidth;
 	var height = document.getElementById('mapcontainer').offsetHeight;
-	d3.select("h3").text("GII 2013");
 	// MAPPA INIZIALE
 	initiate_map();
 	set_legend(gii_palette);
